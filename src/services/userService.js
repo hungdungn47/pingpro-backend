@@ -1,7 +1,9 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
+const ApiError = require("../utils/apiError");
 
 const { generalAccessToken, generalRefreshToken } = require("./jwtService");
+const { StatusCodes } = require("http-status-codes");
 
 const createUser = (reqBody) => {
   return new Promise(async (resolve, reject) => {
@@ -10,7 +12,10 @@ const createUser = (reqBody) => {
     try {
       const checkUser = await User.findOne({ email });
       if (checkUser !== null) {
-        throw new Error("This email is already used");
+        throw new ApiError(
+          StatusCodes.BAD_REQUEST,
+          "This email is already used"
+        );
       }
       const hashedPassword = bcrypt.hashSync(password, 10);
 
@@ -42,7 +47,10 @@ const loginUser = (reqBody) => {
     try {
       const checkUser = await User.findOne({ email });
       if (!checkUser) {
-        throw new Error("This email is not registered yet!");
+        throw new ApiError(
+          StatusCodes.BAD_REQUEST,
+          "This email is not registered yet!"
+        );
       }
       const comparePassword = bcrypt.compareSync(password, checkUser.password);
       if (comparePassword) {
@@ -62,7 +70,7 @@ const loginUser = (reqBody) => {
           refresh_token,
         });
       } else {
-        throw new Error("Incorrect password");
+        throw new ApiError(StatusCodes.BAD_REQUEST, "Incorrect password");
       }
     } catch (e) {
       reject(e);
@@ -74,7 +82,10 @@ const updateUser = async (userId, data) => {
   try {
     const checkUser = await User.findOne({ _id: userId });
     if (!checkUser) {
-      throw new Error("This user has not been registered");
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        "This user is not registered yet!"
+      );
     }
 
     delete data.password;
@@ -92,7 +103,10 @@ const deleteUser = async (userId) => {
   try {
     const checkUser = await User.findOne({ _id: userId });
     if (!checkUser) {
-      throw new Error("This user has not been registered");
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        "This user is not registered yet!"
+      );
     }
     await User.findByIdAndDelete(userId);
     return {
