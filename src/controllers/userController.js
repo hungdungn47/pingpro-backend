@@ -53,12 +53,13 @@ const loginUser = async (req, res, next) => {
       );
     }
     const response = await userService.loginUser(req.body);
-    const { refresh_token, ...newResponse } = response;
+    const { refresh_token } = response;
     res.cookie("refresh_token", refresh_token, {
-      HttpOnly: true,
-      Secure: true,
+      httpOnly: true,
+      secure: false,
+      sameSite: "none",
     });
-    return res.status(StatusCodes.OK).json(newResponse);
+    return res.status(StatusCodes.OK).json(response);
   } catch (e) {
     next(e);
   }
@@ -118,7 +119,11 @@ const getUserDetails = async (req, res, next) => {
 
 const refreshToken = async (req, res, next) => {
   try {
-    const token = req.cookies.refresh_token;
+    // const token = req.cookies.refresh_token;
+    if (!req.headers.authorization) {
+      throw new Error("Token missing");
+    }
+    const token = req.headers.authorization;
     if (!token) {
       throw new Error("Token missing");
     }
@@ -134,6 +139,17 @@ const refreshToken = async (req, res, next) => {
   }
 };
 
+const logoutUser = async (req, res, next) => {
+  try {
+    res.clearCookie("access_token");
+    return res.status(StatusCodes.OK).json({
+      message: "Logged out successfully",
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+
 module.exports = {
   createUser,
   loginUser,
@@ -142,4 +158,5 @@ module.exports = {
   getAllUser,
   getUserDetails,
   refreshToken,
+  logoutUser,
 };

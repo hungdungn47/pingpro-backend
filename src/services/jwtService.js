@@ -8,7 +8,7 @@ const generalAccessToken = (payload) => {
       payload,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "10m" }
+    { expiresIn: "15s" }
   );
   return access_token;
 };
