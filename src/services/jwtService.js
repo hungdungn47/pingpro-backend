@@ -46,7 +46,7 @@ const refreshTokenService = async (token) => {
       access_token,
     };
   } catch (e) {
-    reject(e);
+    throw e;
   }
 };
 
