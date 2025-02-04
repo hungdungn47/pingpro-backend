@@ -14,7 +14,8 @@ app.use(
     credentials: true, // Allow cookies to be sent
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb" }));
 app.use(cookieParser());
 
 const port = process.env.PORT || 3001;
