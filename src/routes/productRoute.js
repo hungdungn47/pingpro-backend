@@ -12,5 +12,8 @@ router
   .get(productController.getProductById)
   .put(authMiddleware, productController.updateProduct)
   .delete(authMiddleware, productController.deleteProduct);
+router
+  .route("/delete-multiple")
+  .post(authMiddleware, productController.deleteMultipleProducts);
 
 module.exports = router;

@@ -108,10 +108,22 @@ const deleteProduct = async (productId) => {
   }
 };
 
+const deleteMultipleProducts = async (idList) => {
+  try {
+    await Product.deleteMany({ _id: idList });
+    return {
+      message: "Deleted product list successfully",
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   createProduct,
   getProductById,
   getAllProducts,
   updateProduct,
   deleteProduct,
+  deleteMultipleProducts,
 };

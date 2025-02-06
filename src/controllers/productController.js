@@ -91,10 +91,23 @@ const deleteProduct = async (req, res, next) => {
   }
 };
 
+const deleteMultipleProducts = async (req, res, next) => {
+  try {
+    const idList = req.body;
+    if (!idList) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Missing products Id list");
+    }
+    const result = await productService.deleteMultipleProducts(idList);
+    return res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   createProduct,
   getProductById,
   getAllProducts,
   updateProduct,
   deleteProduct,
+  deleteMultipleProducts,
 };
