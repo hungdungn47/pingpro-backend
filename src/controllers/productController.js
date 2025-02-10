@@ -103,6 +103,18 @@ const deleteMultipleProducts = async (req, res, next) => {
     next(error);
   }
 };
+
+const getAllType = async (req, res, next) => {
+  try {
+    const typeList = await productService.getAllType();
+    return res.status(StatusCodes.OK).json({
+      message: "Get all types successfully",
+      data: typeList,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   createProduct,
   getProductById,
@@ -110,4 +122,5 @@ module.exports = {
   updateProduct,
   deleteProduct,
   deleteMultipleProducts,
+  getAllType,
 };

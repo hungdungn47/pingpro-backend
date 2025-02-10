@@ -96,27 +96,24 @@ const updateProduct = async (productId, newProductData) => {
 };
 
 const deleteProduct = async (productId) => {
-  try {
-    const product = await Product.findById(productId);
-    if (!product) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "This product does not exist");
-    }
-    const deletedProduct = await Product.findByIdAndDelete(productId);
-    return deletedProduct;
-  } catch (error) {
-    throw error;
+  const product = await Product.findById(productId);
+  if (!product) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "This product does not exist");
   }
+  const deletedProduct = await Product.findByIdAndDelete(productId);
+  return deletedProduct;
 };
 
 const deleteMultipleProducts = async (idList) => {
-  try {
-    await Product.deleteMany({ _id: idList });
-    return {
-      message: "Deleted product list successfully",
-    };
-  } catch (error) {
-    throw error;
-  }
+  await Product.deleteMany({ _id: idList });
+  return {
+    message: "Deleted product list successfully",
+  };
+};
+
+const getAllType = async () => {
+  const typeList = await Product.distinct("type");
+  return typeList;
 };
 
 module.exports = {
@@ -126,4 +123,5 @@ module.exports = {
   updateProduct,
   deleteProduct,
   deleteMultipleProducts,
+  getAllType,
 };

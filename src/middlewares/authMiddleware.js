@@ -3,7 +3,7 @@ const ApiError = require("../utils/apiError");
 const { StatusCodes } = require("http-status-codes");
 const dotenv = require("dotenv").config();
 
-const authMiddleware = (req, res, next) => {
+const authAdminMiddleware = (req, res, next) => {
   try {
     if (!req.headers.authorization) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Missing token!");
@@ -39,6 +39,7 @@ const authUserMiddleware = (req, res, next) => {
     }
     const { payload } = user;
     if (payload?.isAdmin || payload?.id === userId) {
+      req.body.userId = payload?.id;
       next();
     } else {
       return res.status(401).json({
@@ -49,6 +50,6 @@ const authUserMiddleware = (req, res, next) => {
 };
 
 module.exports = {
-  authMiddleware,
+  authAdminMiddleware,
   authUserMiddleware,
 };
