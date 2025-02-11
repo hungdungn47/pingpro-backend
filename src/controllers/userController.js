@@ -3,150 +3,137 @@ const jwtService = require("../services/jwtService");
 const { StatusCodes } = require("http-status-codes");
 const ApiError = require("../utils/apiError");
 
+// Email validation regex
+const EMAIL_REGEX = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+
 const createUser = async (req, res, next) => {
   try {
     const { name, email, password, confirmPassword, phone } = req.body;
+
     if (!email || !password || !confirmPassword) {
       throw new ApiError(
         StatusCodes.UNPROCESSABLE_ENTITY,
-        "Missing required field"
+        "Missing required fields"
       );
     }
-    const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    const isEmail = reg.test(email);
-    if (!isEmail) {
+    if (!EMAIL_REGEX.test(email)) {
       throw new ApiError(
         StatusCodes.UNPROCESSABLE_ENTITY,
-        "Email is in wrong format"
+        "Invalid email format"
       );
     }
     if (password !== confirmPassword) {
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        "Password and confirm password do not match"
-      );
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Passwords do not match");
     }
 
     const response = await userService.createUser(req.body);
-
-    return res.status(StatusCodes.CREATED).json(response);
-  } catch (e) {
-    next(e);
+    res.status(StatusCodes.CREATED).json(response);
+  } catch (error) {
+    next(error);
   }
 };
 
 const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
     if (!email || !password) {
       throw new ApiError(
         StatusCodes.UNPROCESSABLE_ENTITY,
-        "Missing required field"
+        "Missing required fields"
       );
     }
-    const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-    const isEmail = reg.test(email);
-    if (!isEmail) {
+    if (!EMAIL_REGEX.test(email)) {
       throw new ApiError(
         StatusCodes.UNPROCESSABLE_ENTITY,
-        "Email is in wrong format"
+        "Invalid email format"
       );
     }
+
     const response = await userService.loginUser(req.body);
-    const { refresh_token } = response;
-    res.cookie("refresh_token", refresh_token, {
+    res.cookie("refresh_token", response.refreshToken, {
       httpOnly: true,
       secure: false,
       sameSite: "none",
     });
-    return res.status(StatusCodes.OK).json(response);
-  } catch (e) {
-    next(e);
+
+    res.status(StatusCodes.OK).json(response);
+  } catch (error) {
+    next(error);
   }
 };
+
 const updateUser = async (req, res, next) => {
   try {
-    const userId = req.params.id;
-    const data = req.body;
-
+    const { id: userId } = req.params;
     if (!userId) {
-      return res.status(400).json({
-        message: "Missing user id",
-      });
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Missing user ID");
     }
 
-    const response = await userService.updateUser(userId, data);
-    return res.status(StatusCodes.OK).json(response);
-  } catch (e) {
-    next(e);
+    const response = await userService.updateUser(userId, req.body);
+    res.status(StatusCodes.OK).json(response);
+  } catch (error) {
+    next(error);
   }
 };
+
 const deleteUser = async (req, res, next) => {
   try {
-    const userId = req.params.id;
-
+    const { id: userId } = req.params;
     if (!userId) {
-      return res.status(400).json({
-        message: "Missing user id",
-      });
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Missing user ID");
     }
 
     const response = await userService.deleteUser(userId);
-    return res.status(StatusCodes.OK).json(response);
-  } catch (e) {
-    next(e);
+    res.status(StatusCodes.OK).json(response);
+  } catch (error) {
+    next(error);
   }
 };
 
-const getAllUser = async (req, res, next) => {
+const getAllUsers = async (req, res, next) => {
   try {
-    const response = await userService.getAllUser();
-    return res.status(StatusCodes.OK).json(response);
-  } catch (e) {
-    next(e);
+    const response = await userService.getAllUsers();
+    res.status(StatusCodes.OK).json(response);
+  } catch (error) {
+    next(error);
   }
 };
 
 const getUserDetails = async (req, res, next) => {
   try {
-    const userId = req.params.id;
+    const { id: userId } = req.params;
+    if (!userId) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Missing user ID");
+    }
+
     const response = await userService.getUserDetails(userId);
-    return res.status(StatusCodes.OK).json(response);
-  } catch (e) {
-    next(e);
+    res.status(StatusCodes.OK).json(response);
+  } catch (error) {
+    next(error);
   }
 };
 
 const refreshToken = async (req, res, next) => {
   try {
-    // const token = req.cookies.refresh_token;
-    if (!req.headers.authorization) {
-      throw new Error("Token missing");
+    const refreshToken = req.headers.authorization.split(" ")[1];
+    if (!refreshToken) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Refresh token missing");
     }
-    const token = req.headers.authorization;
-    if (!token) {
-      throw new Error("Token missing");
-    }
-    const response = await jwtService.refreshTokenService(token);
-    return res.status(StatusCodes.OK).json(response);
-  } catch (e) {
-    console.log(e.message);
-    const customError = new ApiError(
-      StatusCodes.UNAUTHORIZED,
-      new Error(e).message
-    );
-    next(customError);
+
+    const response = await jwtService.refreshTokenService(refreshToken);
+    res.status(StatusCodes.OK).json(response);
+  } catch (error) {
+    next(new ApiError(StatusCodes.UNAUTHORIZED, error.message));
   }
 };
 
 const logoutUser = async (req, res, next) => {
   try {
-    res.clearCookie("access_token");
-    return res.status(StatusCodes.OK).json({
-      message: "Logged out successfully",
-    });
-  } catch (e) {
-    next(e);
+    res.clearCookie("refresh_token");
+    res.status(StatusCodes.OK).json({ message: "Logged out successfully" });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -155,7 +142,7 @@ module.exports = {
   loginUser,
   updateUser,
   deleteUser,
-  getAllUser,
+  getAllUsers,
   getUserDetails,
   refreshToken,
   logoutUser,

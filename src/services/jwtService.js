@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const generalAccessToken = (payload) => {
+const createAccessToken = (payload) => {
   const access_token = jwt.sign(
     {
       payload,
@@ -13,7 +13,7 @@ const generalAccessToken = (payload) => {
   return access_token;
 };
 
-const generalRefreshToken = (payload) => {
+const createRefreshToken = (payload) => {
   const refresh_token = jwt.sign(
     {
       payload,
@@ -34,7 +34,8 @@ const refreshTokenService = async (token) => {
           throw err;
         }
         const { payload } = user;
-        const access_token = generalAccessToken({
+        console.log("Payload of decoded refresh token: ", payload);
+        const access_token = createAccessToken({
           id: payload?.id,
           isAdmin: payload?.isAdmin,
         });
@@ -51,7 +52,7 @@ const refreshTokenService = async (token) => {
 };
 
 module.exports = {
-  generalAccessToken,
-  generalRefreshToken,
+  createAccessToken,
+  createRefreshToken,
   refreshTokenService,
 };

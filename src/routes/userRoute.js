@@ -11,7 +11,7 @@ router.post("/sign-in", userController.loginUser);
 router.post("/log-out", userController.logoutUser);
 router.put("/:id", userController.updateUser);
 router.delete("/:id", authAdminMiddleware, userController.deleteUser);
-router.get("/", authAdminMiddleware, userController.getAllUser);
+router.get("/", authAdminMiddleware, userController.getAllUsers);
 router.get("/refresh-token", userController.refreshToken);
 router.get("/:id", authUserMiddleware, userController.getUserDetails);
 

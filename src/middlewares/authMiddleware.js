@@ -44,6 +44,9 @@ const checkAdminMiddleware = (req, res, next) => {
 
 const authUserMiddleware = (req, res, next) => {
   try {
+    if (!req.headers?.authorization) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Missing access token!");
+    }
     const token = req.headers.authorization.split(" ")[1];
     jwt.verify(token, process.env.JWT_SECRET, (err, data) => {
       if (err) {
@@ -52,6 +55,7 @@ const authUserMiddleware = (req, res, next) => {
       const { payload } = data;
       if (payload?.id) {
         req.body.userId = payload?.id;
+        req.headers.userId = payload?.id;
         req.body.isAdmin = payload?.isAdmin;
         next();
       } else {

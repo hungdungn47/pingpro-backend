@@ -1,146 +1,107 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const ApiError = require("../utils/apiError");
-
-const { generalAccessToken, generalRefreshToken } = require("./jwtService");
+const { createAccessToken, createRefreshToken } = require("./jwtService");
 const { StatusCodes } = require("http-status-codes");
 
-const createUser = (reqBody) => {
-  return new Promise(async (resolve, reject) => {
-    const { name, email, password, confirmPassword, phone } = reqBody;
+// Create a new user
+const createUser = async (reqBody) => {
+  const { name, email, password, phone } = reqBody;
 
-    try {
-      const checkUser = await User.findOne({ email });
-      if (checkUser !== null) {
-        throw new ApiError(
-          StatusCodes.BAD_REQUEST,
-          "This email is already used"
-        );
-      }
-      const hashedPassword = bcrypt.hashSync(password, 10);
+  if (await User.findOne({ email })) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "This email is already used");
+  }
 
-      let createdUser = await User.create({
-        name,
-        email,
-        password: hashedPassword,
-        confirmPassword: hashedPassword,
-        phone,
-      });
-      createdUser = createdUser.toObject();
-      if (createdUser) {
-        delete createdUser.password;
-        resolve({
-          message: "Created user successfully",
-          data: createdUser,
-        });
-      }
-    } catch (e) {
-      reject(e);
-    }
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
+  const createdUser = await User.create({
+    name,
+    email,
+    password: hashedPassword,
+    phone,
   });
+
+  const { password: _, ...userWithoutPassword } = createdUser.toObject();
+
+  return {
+    message: "User created successfully",
+    data: userWithoutPassword,
+  };
 };
 
-const loginUser = (reqBody) => {
-  return new Promise(async (resolve, reject) => {
-    const { email, password } = reqBody;
+// User login
+const loginUser = async (reqBody) => {
+  const { email, password } = reqBody;
 
-    try {
-      const checkUser = await User.findOne({ email });
-      if (!checkUser) {
-        throw new ApiError(
-          StatusCodes.BAD_REQUEST,
-          "This email is not registered yet!"
-        );
-      }
-      const comparePassword = bcrypt.compareSync(password, checkUser.password);
-      if (comparePassword) {
-        const access_token = generalAccessToken({
-          id: checkUser.id,
-          isAdmin: checkUser.isAdmin,
-        });
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Email not registered");
+  }
 
-        const refresh_token = generalRefreshToken({
-          id: checkUser.id,
-          isAdmin: checkUser.isAdmin,
-        });
+  if (!bcrypt.compareSync(password, user.password)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Incorrect password");
+  }
 
-        resolve({
-          message: "Login successfully",
-          access_token,
-          refresh_token,
-        });
-      } else {
-        throw new ApiError(StatusCodes.BAD_REQUEST, "Incorrect password");
-      }
-    } catch (e) {
-      reject(e);
-    }
+  const accessToken = createAccessToken({
+    id: user._id,
+    isAdmin: user.isAdmin,
   });
+  const refreshToken = createRefreshToken({
+    id: user._id,
+    isAdmin: user.isAdmin,
+  });
+
+  return {
+    message: "Login successful",
+    accessToken,
+    refreshToken,
+  };
 };
 
+// Update user details
 const updateUser = async (userId, data) => {
-  try {
-    const checkUser = await User.findOne({ _id: userId });
-    if (!checkUser) {
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        "This user is not registered yet!"
-      );
-    }
-
-    delete data.password;
-
-    let result = await User.findByIdAndUpdate(userId, data, { new: true });
-    result = result.toObject();
-    delete result["password"];
-    return { message: "Updated user successfully", data: result };
-  } catch (error) {
-    throw error;
+  const updatedUser = await User.findByIdAndUpdate(userId, data, { new: true });
+  if (!updatedUser) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
+
+  const { password: _, ...userWithoutPassword } = updatedUser.toObject();
+  return {
+    message: "User updated successfully",
+    data: userWithoutPassword,
+  };
 };
 
+// Delete a user
 const deleteUser = async (userId) => {
-  try {
-    const checkUser = await User.findOne({ _id: userId });
-    if (!checkUser) {
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        "This user is not registered yet!"
-      );
-    }
-    await User.findByIdAndDelete(userId);
-    return {
-      message: "Deleted user successfully",
-    };
-  } catch (error) {
-    throw error;
+  const deletedUser = await User.findByIdAndDelete(userId);
+  if (!deletedUser) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
+
+  return { message: "User deleted successfully" };
 };
 
-const getAllUser = async () => {
-  try {
-    const result = await User.find();
-    return {
-      message: "Get all users successfully",
-      data: result,
-    };
-  } catch (error) {
-    throw error;
-  }
+// Get all users
+const getAllUsers = async () => {
+  const users = await User.find().select("-password"); // Exclude passwords
+  return {
+    message: "All users retrieved successfully",
+    data: users,
+  };
 };
 
+// Get user details by ID
 const getUserDetails = async (userId) => {
-  try {
-    let result = await User.findById(userId);
-    result = result.toObject();
-    delete result.password;
-    return {
-      message: "Get user successfully",
-      data: result,
-    };
-  } catch (error) {
-    throw error;
+  const user = await User.findById(userId).select("-password");
+  if (!user) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
+
+  return {
+    message: "User details retrieved successfully",
+    data: user,
+  };
 };
 
 module.exports = {
@@ -148,6 +109,6 @@ module.exports = {
   loginUser,
   updateUser,
   deleteUser,
-  getAllUser,
+  getAllUsers,
   getUserDetails,
 };
