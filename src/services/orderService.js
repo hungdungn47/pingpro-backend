@@ -145,9 +145,18 @@ const getAllOrders = async () => {
   };
 };
 
+const getUserOrders = async (userId) => {
+  const orders = await Order.find({ user: userId });
+  return {
+    message: "Get orders successfully!",
+    data: orders,
+  };
+};
+
 module.exports = {
   placeOrder,
   verifyOrder,
   updateStatus,
   getAllOrders,
+  getUserOrders,
 };

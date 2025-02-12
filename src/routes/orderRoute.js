@@ -15,5 +15,10 @@ router.post(
   orderController.updateStatus
 );
 router.get("/get-all", authAdminMiddleware, orderController.getAllOrders);
+router.get(
+  "/get-user-orders",
+  authUserMiddleware,
+  orderController.getUserOrders
+);
 
 module.exports = router;
