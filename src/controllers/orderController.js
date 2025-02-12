@@ -25,6 +25,17 @@ const placeOrder = async (req, res, next) => {
   }
 };
 
+const verifyOrder = async (req, res, next) => {
+  try {
+    const { orderId, success } = req.body;
+    const result = await orderService.verifyOrder(orderId, success);
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   placeOrder,
+  verifyOrder,
 };

@@ -116,6 +116,21 @@ const placeOrder = async (orderData) => {
   }
 };
 
+const verifyOrder = async (orderId, success) => {
+  if (success === "true") {
+    await Order.findByIdAndUpdate(orderId, { status: "processing" });
+    return {
+      message: "Payment done successfully!",
+    };
+  } else {
+    await Order.findByIdAndDelete(orderId);
+    return {
+      message: "Order cancelled!",
+    };
+  }
+};
+
 module.exports = {
   placeOrder,
+  verifyOrder,
 };
