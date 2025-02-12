@@ -4,19 +4,8 @@ const StatusCodes = require("http-status-codes");
 
 const placeOrder = async (req, res, next) => {
   try {
-    const {
-      fullName,
-      address,
-      city,
-      country,
-      phone,
-      paymentMethod,
-      itemsPrice,
-      shippingPrice,
-      taxPrice,
-      totalPrice,
-      userId,
-    } = req.body;
+    const { fullName, address, city, country, phone, paymentMethod, userId } =
+      req.body;
     if (
       !fullName ||
       !address ||
@@ -24,10 +13,6 @@ const placeOrder = async (req, res, next) => {
       !country ||
       !phone ||
       !paymentMethod ||
-      !itemsPrice ||
-      !shippingPrice ||
-      !taxPrice ||
-      !totalPrice ||
       !userId
     ) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Missing required field!");
