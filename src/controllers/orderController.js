@@ -45,8 +45,17 @@ const updateStatus = async (req, res, next) => {
   }
 };
 
+const getAllOrders = async (req, res, next) => {
+  try {
+    const result = await orderService.getAllOrders();
+    return res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   placeOrder,
   verifyOrder,
   updateStatus,
+  getAllOrders,
 };

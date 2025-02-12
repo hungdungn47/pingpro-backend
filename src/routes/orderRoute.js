@@ -14,5 +14,6 @@ router.post(
   authAdminMiddleware,
   orderController.updateStatus
 );
+router.get("/get-all", authAdminMiddleware, orderController.getAllOrders);
 
 module.exports = router;
