@@ -130,7 +130,17 @@ const verifyOrder = async (orderId, success) => {
   }
 };
 
+const updateStatus = async (orderId, status) => {
+  await Order.findByIdAndUpdate(orderId, { status: status });
+  return {
+    message: "Updated status successfully!",
+  };
+};
+
+const getAllOrders = async () => {};
+
 module.exports = {
   placeOrder,
   verifyOrder,
+  updateStatus,
 };
