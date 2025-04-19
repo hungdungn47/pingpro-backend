@@ -1,11 +1,12 @@
 const express = require("express");
 const dotenv = require("dotenv");
-const { default: mongoose } = require("mongoose");
 const routes = require("./routes");
 const errorHandlingMiddleware = require("./middlewares/errorHandlingMiddleware");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const mongoose = require('mongoose')
 dotenv.config();
+
 
 const app = express();
 app.use(
@@ -23,9 +24,10 @@ const port = process.env.PORT || 3001;
 routes(app);
 
 app.use(errorHandlingMiddleware);
+
 mongoose
   .connect(
-    `mongodb+srv://hungdungn47:${process.env.MONGO_DB_PASSWORD}@tiki-clone-db.ell2o.mongodb.net/`
+    process.env.MONGO_DB_CONNECTION_STRING
   )
   .then(() => {
     console.log("Connected to MongoDB");

@@ -42,19 +42,19 @@ const loginUser = async (reqBody) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Incorrect password");
   }
 
-  const accessToken = createAccessToken({
+  const access_token = createAccessToken({
     id: user._id,
     isAdmin: user.isAdmin,
   });
-  const refreshToken = createRefreshToken({
+  const refresh_token = createRefreshToken({
     id: user._id,
     isAdmin: user.isAdmin,
   });
 
   return {
     message: "Login successful",
-    accessToken,
-    refreshToken,
+    access_token,
+    refresh_token,
   };
 };
 
