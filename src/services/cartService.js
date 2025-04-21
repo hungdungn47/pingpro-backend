@@ -88,8 +88,25 @@ const clearCart = async (userId) => {
 };
 
 const getCart = async (userId) => {
-  const cart = await Cart.findOne({ user: userId });
-  return { message: "Get cart successfully!", cart };
+  const cart = await Cart.findOne({ user: userId }).populate('items.product', 'name images');
+  if (!cart) return { message: 'Cart not found' };
+  const formattedItems = cart.items.map((item) => {
+    const product = item.product;
+    return {
+      _id: product._id,
+      name: product.name,
+      images: product.images,
+      image: product.image,
+      quantity: item.quantity,
+      price: item.price,
+    };
+  });
+  const res = {
+    user: cart.user,
+    items: formattedItems,
+    totalPrice: cart.totalPrice
+  }
+  return { message: "Get cart successfully!", cart: res };
 };
 
 module.exports = {
