@@ -9,10 +9,7 @@ const placeOrder = async (req, res, next) => {
     if (
       !fullName ||
       !address ||
-      !city ||
-      !country ||
       !phone ||
-      !paymentMethod ||
       !userId
     ) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Missing required field!");

@@ -41,6 +41,8 @@ const getAllProducts = async (req, res, next) => {
       maxPrice,
       searchBy,
       searchValue,
+      brand,
+      category
     } = req.query;
     const result = await productService.getAllProducts(
       Number(limit),
@@ -50,7 +52,9 @@ const getAllProducts = async (req, res, next) => {
       Number(minPrice),
       Number(maxPrice),
       searchBy,
-      searchValue
+      searchValue,
+      brand,
+      category
     );
     return res.status(StatusCodes.OK).json(result);
   } catch (error) {
