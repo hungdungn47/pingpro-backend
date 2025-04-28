@@ -8,6 +8,7 @@ router
   .post(authAdminMiddleware, productController.createProduct)
   .get(productController.getAllProducts);
 router.get("/all-type", productController.getAllType);
+router.get('/brands', productController.getBrands)
 router
   .route("/:id")
   .get(productController.getProductById)

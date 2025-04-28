@@ -120,7 +120,11 @@ const getAllProducts = async (
 
     // Brand filter
     if (brand) {
-      filter.brand = brand;
+      if (Array.isArray(brand)) {
+        filter.brand = { $in: brand };
+      } else {
+        filter.brand = brand;
+      }
     }
 
     // Category filter
@@ -150,8 +154,8 @@ const getAllProducts = async (
       message: "Get all products successfully",
       data: productList,
       total: totalProduct,
-      currentPage: Number(page),
-      totalPages: Math.ceil(totalProduct / Number(limit)), // Fixed: using limit instead of page
+      currentPage: page,
+      totalPages: Math.ceil(totalProduct / limit), // Fixed: using limit instead of page
     };
   } catch (error) {
     throw error;
@@ -192,9 +196,14 @@ const deleteMultipleProducts = async (idList) => {
 };
 
 const getAllType = async () => {
-  const typeList = await Product.distinct("type");
+  const typeList = await Product.distinct("category");
   return typeList;
 };
+
+const getBrands = async (category) => {
+  const brandList = await Product.distinct("brand", { category })
+  return brandList
+}
 
 module.exports = {
   createProduct,
@@ -204,4 +213,5 @@ module.exports = {
   deleteProduct,
   deleteMultipleProducts,
   getAllType,
+  getBrands
 };
