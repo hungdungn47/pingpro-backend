@@ -119,6 +119,19 @@ const getAllType = async (req, res, next) => {
     next(error);
   }
 };
+
+const getBrands = async (req, res, next) => {
+  try {
+    const { category } = req.query
+    const brandList = await productService.getBrands(category)
+    return res.status(StatusCodes.OK).json({
+      message: 'Get brand list successfully',
+      data: brandList
+    })
+  } catch (error) {
+    next(error)
+  }
+}
 module.exports = {
   createProduct,
   getProductById,
@@ -127,4 +140,5 @@ module.exports = {
   deleteProduct,
   deleteMultipleProducts,
   getAllType,
+  getBrands
 };
